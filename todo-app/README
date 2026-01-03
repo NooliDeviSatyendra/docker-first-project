@@ -1,0 +1,95 @@
+1️⃣ To-Do List Application File
+
+Filename: app.js
+
+This is a very simple in-memory To-Do app (no database).
+
+const express = require("express");
+const bodyParser = require("body-parser");
+
+const app = express();
+const PORT = 3000;
+
+// Middleware
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+
+// In-memory todo list
+let todos = [];
+
+// Home page
+app.get("/", (req, res) => {
+  let listItems = todos
+    .map((todo, index) => `<li>${todo} <a href="/delete/${index}">❌</a></li>`)
+    .join("");
+
+  res.send(`
+    <h2>To-Do List</h2>
+    <form method="POST" action="/add">
+      <input type="text" name="task" placeholder="Enter task" required />
+      <button type="submit">Add</button>
+    </form>
+    <ul>${listItems}</ul>
+  `);
+});
+
+// Add task
+app.post("/add", (req, res) => {
+  const task = req.body.task;
+  if (task) {
+    todos.push(task);
+  }
+  res.redirect("/");
+});
+
+// Delete task
+app.get("/delete/:id", (req, res) => {
+  const id = req.params.id;
+  todos.splice(id, 1);
+  res.redirect("/");
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`To-Do app running on port ${PORT}`);
+});
+
+2️⃣ Dockerfile
+
+Filename: Dockerfile
+
+# Use Node.js base image
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy application file
+COPY app.js .
+
+# Install dependencies
+RUN npm init -y && npm install express body-parser
+
+# Expose application port
+EXPOSE 3000
+
+# Start application
+CMD ["node", "app.js"]
+
+3️⃣ Folder Structure
+todo-app/
+├── app.js
+└── Dockerfile
+
+4️⃣ Build & Run the To-Do App in Docker
+
+From inside the todo-app directory:
+
+docker build -t todo-app .
+
+docker run -d -p 3000:3000 todo-app
+
+
+Now open in browser:
+
+👉 http://localhost:3000
